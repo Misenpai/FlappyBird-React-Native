@@ -10,6 +10,7 @@ const SignIn = () => {
 
   const handleLogin = () => {
     console.log('Email:', email, 'Password:', password);
+    router.push('/(game)');
   };
 
   return (
@@ -50,7 +51,7 @@ const SignIn = () => {
 
             <CustomButton
               title="Sign-In"
-              handlePress={() => router.push('/sign-in')}
+              handlePress={handleLogin}
               containerStyles={[styles.customButtonContainer, styles.spacing]}
             />
 
