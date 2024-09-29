@@ -1,3 +1,4 @@
+// components/useGameLogic.js
 import { useWindowDimensions } from 'react-native';
 import { useImage } from '@shopify/react-native-skia';
 import {
@@ -8,7 +9,6 @@ import {
     useFrameCallback,
     useDerivedValue,
     interpolate,
-    Extrapolation,
     useAnimatedReaction,
     runOnJS,
     cancelAnimation,
@@ -52,7 +52,6 @@ export const useGameLogic = () => {
         );
     };
 
-    // Scoring system
     useAnimatedReaction(
         () => pipeX.value,
         (currentValue, previousValue) => {
@@ -75,38 +74,36 @@ export const useGameLogic = () => {
         }
     );
 
-    // Collision detection
     useAnimatedReaction(
         () => birdY.value,
-        (currentValue, previousValue) => {
+        (currentValue) => {
             const center = {
                 x: BIRD_X + BIRD_WIDTH / 2,
                 y: birdY.value + BIRD_HEIGHT / 2,
             };
 
-            // Ground collision detection
             if (currentValue > height - 100 || currentValue < 0) {
                 gameOver.value = true;
             }
 
-            const isColliding = [
-                { x: pipeX.value, y: bottomPipeY.value, w: PIPE_WIDTH, h: height },
-                { x: pipeX.value, y: topPipeY.value, w: PIPE_WIDTH, h: height },
+            const isColliding = [{
+                    x: pipeX.value,
+                    y: bottomPipeY.value,
+                    w: PIPE_WIDTH,
+                    h: height - bottomPipeY.value,
+                },
+                {
+                    x: pipeX.value,
+                    y: 0,
+                    w: PIPE_WIDTH,
+                    h: topPipeY.value + PIPE_WIDTH,
+                },
             ].some((rect) =>
                 isPointCollidingWithRect(center, rect)
             );
 
             if (isColliding) {
                 gameOver.value = true;
-            }
-        }
-    );
-
-    useAnimatedReaction(
-        () => gameOver.value,
-        (currentValue, previousValue) => {
-            if (currentValue && !previousValue) {
-                cancelAnimation(pipeX);
             }
         }
     );
@@ -144,7 +141,8 @@ export const useGameLogic = () => {
         topPipeY,
         bottomPipeY,
         score,
-        gesture
+        gesture,
+        gameOver: gameOver.value
     };
 };
 

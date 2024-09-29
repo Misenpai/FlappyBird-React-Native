@@ -10,7 +10,7 @@ const SignIn = () => {
 
   const handleLogin = () => {
     console.log('Email:', email, 'Password:', password);
-    router.push('/(game)');
+    router.push('/game-home');
   };
 
   return (

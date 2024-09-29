@@ -1,0 +1,30 @@
+import { View, Text } from 'react-native'
+import React from 'react'
+import { Stack } from 'expo-router'
+
+const HomeLayout = () => {
+  return (
+    <Stack>
+        <Stack.Screen
+            name = "game-home"
+            options={{
+                headerShown:false
+            }}
+        />
+        <Stack.Screen
+            name = "leaderboard-screen"
+            options={{
+                headerShown:false
+            }}
+        />
+        <Stack.Screen
+            name = "game-end"
+            options={{
+                headerShown:false
+            }}
+        />
+    </Stack>
+  )
+}
+
+export default HomeLayout
