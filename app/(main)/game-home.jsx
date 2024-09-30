@@ -19,7 +19,7 @@ const GameHome = () => {
             />
             {/* Add a container for the images and set flexDirection to 'row' */}
             <View style={styles.imageRow}>
-              <TouchableOpacity onPress={()=> router.push('/(game)')}>
+              <TouchableOpacity onPress={()=> router.push('/Game')}>
               <Image
                 source={require("../../assets/images/play_cion.png")}
                 style={styles.image}

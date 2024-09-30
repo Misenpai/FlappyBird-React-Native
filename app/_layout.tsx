@@ -3,8 +3,6 @@ import { useFonts } from "expo-font";
 import "react-native-url-polyfill/auto";
 import { SplashScreen, Stack } from "expo-router";
 
-
-
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
@@ -30,20 +28,16 @@ const RootLayout = () => {
   }, [fontsLoaded, error]);
 
   if (!fontsLoaded) {
-    return null;
-  }
-
-  if (!fontsLoaded && !error) {
-    return null;
+    return null; // Optionally show a loading indicator here
   }
 
   return (
-      <Stack>
-        <Stack.Screen name="(game)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
-      </Stack>
+    <Stack>
+      <Stack.Screen name="(game)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)" options={{ headerShown: false }} />
+    </Stack>
   );
 };
 

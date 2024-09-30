@@ -5,21 +5,23 @@ import { StatusBar } from 'expo-status-bar';
 
 const Layout = () => {
     return (
-        <Stack>
-        <Stack.Screen
-            name = "sign-in"
-            options={{
-                headerShown:false
-            }}
-        />
-        <Stack.Screen
-            name = "sign-up"
-            options={{
-                headerShown:false
-            }}
-        />
-        <StatusBar hidden/>
-    </Stack>
+        <View style={{ flex: 1 }}>
+            <StatusBar hidden />
+            <Stack>
+                <Stack.Screen
+                    name="sign-in"
+                    options={{
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
+                    name="sign-up"
+                    options={{
+                        headerShown: false,
+                    }}
+                />
+            </Stack>
+        </View>
     );
 }
 

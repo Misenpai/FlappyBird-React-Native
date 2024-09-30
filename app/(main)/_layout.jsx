@@ -1,30 +1,40 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Stack } from 'expo-router'
+import { StatusBar } from 'expo-status-bar';
+import { Stack } from 'expo-router';
+import React from 'react';
+import { View } from 'react-native';
 
 const HomeLayout = () => {
   return (
-    <Stack>
+    <View style={{ flex: 1 }}>
+      <StatusBar hidden />
+      <Stack>
         <Stack.Screen
-            name = "game-home"
-            options={{
-                headerShown:false
-            }}
+          name="index"
+          options={{
+            headerShown: false,
+          }}
         />
         <Stack.Screen
-            name = "leaderboard-screen"
-            options={{
-                headerShown:false
-            }}
+          name="game-home"
+          options={{
+            headerShown: false,
+          }}
         />
         <Stack.Screen
-            name = "game-end"
-            options={{
-                headerShown:false
-            }}
+          name="leaderboard-screen"
+          options={{
+            headerShown: false,
+          }}
         />
-    </Stack>
-  )
+        <Stack.Screen
+          name="game-end"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+    </View>
+  );
 }
 
-export default HomeLayout
+export default HomeLayout;
