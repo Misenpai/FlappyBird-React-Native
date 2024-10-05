@@ -1,16 +1,58 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ImageBackground, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
 import { Link, router } from 'expo-router';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../../config/config';
+
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username,setUsername] = useState('')
+  const [username, setUsername] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log('Username:', username,'Email:', email, 'Password:', password);
+  const storeTokens = async (accessToken, refreshToken) => {
+    try {
+      await AsyncStorage.setItem('@access_token', accessToken);
+      await AsyncStorage.setItem('@refresh_token', refreshToken);
+    } catch (e) {
+      console.error('Error storing tokens:', e);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!email || !password || !username) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/flappybirdapi/signup`, {
+        email,
+        password,
+        username,
+      });
+
+      const { accessToken, refreshToken } = response.data;
+
+      // Store tokens
+      await storeTokens(accessToken, refreshToken);
+
+      Alert.alert('Success', 'Account created successfully!', [
+        { text: 'OK', onPress: () => router.push('/game') } // Assuming you want to redirect to the game screen after signup
+      ]);
+    } catch (error) {
+      console.error('Error during sign up:', error);
+      const errorMessage = error.response?.data?.message || 'An unexpected error occurred. Please try again.';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -19,7 +61,6 @@ const SignUp = () => {
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
-        {/* Text positioned at the top */}
         <View style={styles.headerContainer}>
           <Text style={styles.textCustom}>FlappyBird</Text>
         </View>
@@ -36,9 +77,8 @@ const SignUp = () => {
             <TextInput
               style={[styles.input, styles.spacing]}
               placeholder="Username"
-              secureTextEntry
               value={username}
-              onChangeText={(text) => setUsername(text)}
+              onChangeText={setUsername}
             />
 
             <TextInput
@@ -46,7 +86,7 @@ const SignUp = () => {
               placeholder="Email"
               keyboardType="email-address"
               value={email}
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={setEmail}
             />
 
             <TextInput
@@ -54,13 +94,14 @@ const SignUp = () => {
               placeholder="Password"
               secureTextEntry
               value={password}
-              onChangeText={(text) => setPassword(text)}
+              onChangeText={setPassword}
             />
 
             <CustomButton
-              title="Sign-Up"
-              handlePress={() => router.push('/sign-in')}
+              title={isLoading ? "Signing Up..." : "Sign-Up"}
+              handlePress={handleSignUp}
               containerStyles={[styles.customButtonContainer, styles.spacing]}
+              disabled={isLoading}
             />
 
             <View style={styles.signinContainer}>
@@ -75,7 +116,6 @@ const SignUp = () => {
     </ImageBackground>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -85,16 +125,16 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'absolute',
-    top: 50, // Adjust the top value to control how far down the text is
+    top: 50,
     alignItems: 'center',
     width: '100%',
   },
   textCustom: {
-    fontSize: 150, // Adjusted to fit the screen better
+    fontSize: 150,
     fontFamily: 'FlappyBird',
-    textAlign: 'center', // Centered horizontally
+    textAlign: 'center',
     color: 'white',
-    marginTop:40
+    marginTop: 40,
   },
   loginContainer: {
     width: 300,
@@ -150,11 +190,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    marginTop:100,
+    marginTop: 100,
     width: 100,
     height: 100,
     resizeMode: 'contain',
-    marginBottom: 30, // Adjusted spacing between image and text
+    marginBottom: 30,
   },
 });
 

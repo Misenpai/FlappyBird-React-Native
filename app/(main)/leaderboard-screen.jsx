@@ -1,55 +1,85 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, ImageBackground, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ImageBackground, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../../config/config';
 
-const data = [
-  { id: '1', name: 'Sumit', score: 90 },
-  { id: '2', name: 'Sumit', score: 90 },
-  { id: '3', name: 'Sumit', score: 90 },
-  { id: '4', name: 'Sumit', score: 90 },
-  { id: '5', name: 'Sumit', score: 90 },
-  { id: '6', name: 'Sumit', score: 90 },
-  { id: '7', name: 'Sumit', score: 90 },
-  { id: '8', name: 'Sumit', score: 90 },
-  { id: '9', name: 'Sumit', score: 90 },
-  { id: '10', name: 'Sumit', score: 90 },
-];
 
 const Leaderboard = () => {
-  const renderItem = ({ item }) => (
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaderboardData();
+  }, []);
+
+  const fetchLeaderboardData = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('@access_token');
+      if (!accessToken) {
+        Alert.alert('Error', 'No access token found. Please login again.');
+        return;
+      }
+
+      const response = await axios.get(`${API_URL}/flappybirdapi/leaderboard`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      setLeaderboardData(response.data);
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+      Alert.alert('Error', 'Failed to fetch leaderboard data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderItem = ({ item, index }) => (
     <View style={styles.row}>
-      <Text style={styles.name}>{item.name}</Text>
+      <Text style={styles.rank}>{index + 1}</Text>
+      <Text style={styles.name}>{item.username}</Text>
       <Text style={styles.score}>{item.score}</Text>
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <ImageBackground
+        source={require('../../assets/sprites/background-day.png')}
+        style={styles.background}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <ActivityIndicator size="large" color="#ffffff" />
+        </SafeAreaView>
+      </ImageBackground>
+    );
+  }
+
   return (
     <ImageBackground
-      source={require('../../assets/sprites/background-day.png')} // Your background image path
+      source={require('../../assets/sprites/background-day.png')}
       style={styles.background}
     >
       <SafeAreaView style={styles.safeArea}>
-        
-
-            <View style={styles.headerContainer}>
-            <Text style={styles.textCustom}>FlappyBird</Text>
-            </View>
-            <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Name</Text>
-                <Text style={styles.headerText}>Score</Text>
-            </View>
-
-            {/* FlatList automatically scrolls, so no need to wrap in ScrollView */}
-            <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.list}
-                showsVerticalScrollIndicator={false}
-            />
-            </View>
-        
+        <View style={styles.headerContainer}>
+          <Text style={styles.textCustom}>FlappyBird</Text>
+        </View>
+        <View style={styles.container}>
+          <Text style={styles.title}>Leaderboard</Text>
+          <View style={styles.header}>
+            <Text style={[styles.headerText, styles.rankHeader]}>Rank</Text>
+            <Text style={[styles.headerText, styles.nameHeader]}>Name</Text>
+            <Text style={[styles.headerText, styles.scoreHeader]}>Score</Text>
+          </View>
+          <FlatList
+            data={leaderboardData}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -66,9 +96,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    height:'60%', // Ensure the container takes full height
+    height: '60%',
     width: '90%',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -77,17 +107,34 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#2c3e50',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
     paddingBottom: 10,
-    borderBottomColor: '#ccc',
-    borderBottomWidth: 1,
+    borderBottomColor: '#34495e',
+    borderBottomWidth: 2,
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  rankHeader: {
+    flex: 1,
+  },
+  nameHeader: {
+    flex: 2,
+  },
+  scoreHeader: {
+    flex: 1,
   },
   list: {
     paddingBottom: 20,
@@ -96,36 +143,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#2ecc71',
-    borderRadius: 20,
+    backgroundColor: '#3498db',
+    borderRadius: 10,
     padding: 15,
-    marginBottom: 15,
+    marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  rank: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   name: {
-    fontSize: 18,
+    flex: 2,
+    fontSize: 16,
     color: '#fff',
   },
   score: {
-    fontSize: 18,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#fff',
+    textAlign: 'right',
   },
   headerContainer: {
     position: 'absolute',
-    top: 50, // Adjust the top value to control how far down the text is
+    top: 50,
     alignItems: 'center',
     width: '100%',
   },
   textCustom: {
-    fontSize: 150, // Adjusted to fit the screen better
+    fontSize: 60,
     fontFamily: 'FlappyBird',
-    textAlign: 'center', // Centered horizontally
+    textAlign: 'center',
     color: 'white',
-    marginTop:40
+    marginTop: 20,
   },
 });
 

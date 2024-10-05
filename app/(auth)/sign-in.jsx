@@ -1,16 +1,57 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ImageBackground, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
 import { Link, router } from 'expo-router';
+import axios from 'axios';
+import { API_URL } from '../../config/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAccessToken,getRefreshToken,clearTokens } from '../../config/tokenUtils';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log('Email:', email, 'Password:', password);
-    router.push('/game-home');
+  const storeTokens = async (accessToken, refreshToken) => {
+    try {
+      await AsyncStorage.setItem('accessToken', accessToken);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+    } catch (e) {
+      console.error('Error storing tokens:', e);
+    }
+  };
+
+  const handleLogin = async () => {
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/flappybirdapi/login`, {
+        email,
+        password
+      });
+
+      if (response.data.accessToken && response.data.refreshToken) {
+        await storeTokens(response.data.accessToken, response.data.refreshToken);
+        console.log('Login successful');
+        router.push('/game-home');
+      } else {
+        setError('Invalid response from server');
+      }
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data.message || 'An error occurred during login');
+      } else if (error.request) {
+        setError('No response from server. Please try again.');
+      } else {
+        setError('An error occurred. Please try again.');
+      }
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -19,7 +60,6 @@ const SignIn = () => {
       style={styles.background}
     >
       <SafeAreaView style={styles.container}>
-        {/* Text positioned at the top */}
         <View style={styles.headerContainer}>
           <Text style={styles.textCustom}>FlappyBird</Text>
         </View>
@@ -49,10 +89,13 @@ const SignIn = () => {
               onChangeText={(text) => setPassword(text)}
             />
 
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
             <CustomButton
-              title="Sign-In"
+              title={isLoading ? "Signing In..." : "Sign-In"}
               handlePress={handleLogin}
               containerStyles={[styles.customButtonContainer, styles.spacing]}
+              disabled={isLoading}
             />
 
             <View style={styles.signupContainer}>
@@ -86,7 +129,7 @@ const styles = StyleSheet.create({
     fontFamily: 'FlappyBird',
     textAlign: 'center', // Centered horizontally
     color: 'white',
-    marginTop:40
+    marginTop: 40
   },
   loginContainer: {
     width: 300,
@@ -142,11 +185,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    marginTop:100,
+    marginTop: 100,
     width: 100,
     height: 100,
     resizeMode: 'contain',
     marginBottom: 30, // Adjusted spacing between image and text
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 
